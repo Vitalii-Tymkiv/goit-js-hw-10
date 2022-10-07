@@ -6,19 +6,23 @@ import { fetchCountries } from './fetchCountries';
 import { baseMarkup, countryMarkup } from './markup';
 
 const DEBOUNCE_DELAY = 300;
+const notifyOptions = {
+  position: 'center-top',
+  clickToClose: true,
+};
 
 const handleInput = event => {
   event.preventDefault();
 
-  const query = event.currentTarget.value.trim().toLowerCase();
+  const query = event.target.value.trim().toLowerCase();
 
   fetchCountries(query)
     .then(countries => {
       handleCountriesResponce(countries);
     })
-    .catch(error => {
+    .catch(() => {
       resetCountryMarkup();
-      Notify.failure('Oops, there is no country with that name');
+      Notify.failure('Oops, there is no country with that name', notifyOptions);
     });
 };
 
@@ -26,7 +30,10 @@ function handleCountriesResponce(items) {
   resetCountryMarkup();
   if (items) {
     if (items.length > 10) {
-      Notify.info('Too many matches found. Please enter a more specific name.');
+      Notify.info(
+        'Too many matches found. Please enter a more specific name.',
+        notifyOptions
+      );
     } else if (items.length > 2) {
       items.forEach(item => {
         const markup = baseMarkup(item);
@@ -44,19 +51,5 @@ function resetCountryMarkup() {
   refs.list.innerHTML = '';
 }
 
-refs.input.addEventListener('input', handleInput);
-
-//////////////////////////////////////////////////
-// export function createMarkup(photos) {
-//   return photos
-//     .map(({ urls, alt_description }) => {
-//       return /*html*/ `<li class="gallery__item">
-//     <img src="${urls.small}" alt="${alt_description}" class="gallery-img">
-// </li>`;
-//     })
-//     .join('');
-// }
-
-//  1. Add debounce
-// 2. Розділити на функції handleCountriesResponce
-// 3. Зробити розмітку
+const debouncedHandleInput = debounce(handleInput, DEBOUNCE_DELAY);
+refs.input.addEventListener('input', debouncedHandleInput);
